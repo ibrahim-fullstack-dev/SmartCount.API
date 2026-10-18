@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SmartCount.Api/SmartCount.Api.csproj" />
+    <Project Path="src/SmartCount.Application/SmartCount.Application.csproj" />
+    <Project Path="src/SmartCount.Domain/SmartCount.Domain.csproj" />
+    <Project Path="src/SmartCount.Infrastructure/SmartCount.Infrastructure.csproj" />
+  </Folder>
+</Solution>
