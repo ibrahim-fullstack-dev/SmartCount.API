@@ -1,10 +1,9 @@
-﻿
+﻿using SmartCount.Domain.Entities.Common;
+
 namespace SmartCount.Domain.Entities.Accounting;
 
-public class AccountGroup
+public class AccountGroup: AuditableEntity
 {
-    public int Id { get; private set; }
-
     public int CompanyId { get; private set; }
 
     public int AccountTypeId { get; private set; }
@@ -19,21 +18,23 @@ public class AccountGroup
     {
     }
 
-    private AccountGroup(int companyId,int accountTypeId,int? parentGroupId,string name)
+    private AccountGroup(int companyId,int accountTypeId,int? parentGroupId,string code,string name)
     {
         CompanyId = companyId;
         AccountTypeId = accountTypeId;
         ParentGroupId = parentGroupId;
         Name = name;
+        Code = code;
     }
 
-    public static AccountGroup Create(int companyId,int accountTypeId,int? parentGroupId,string name)
+    public static AccountGroup Create(int companyId,int accountTypeId,int? parentGroupId,string code,string name)
     {
         return new AccountGroup(
            companyId,
            accountTypeId,
            parentGroupId,
-           name.Trim());
+           name.Trim(),
+           code.Trim());
     }
 
     public void Update(int accountTypeId,int? parentGroupId,string name)

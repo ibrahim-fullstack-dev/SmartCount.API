@@ -6,12 +6,15 @@ public class AccountType
 {
     public int Id { get; private set; }
 
-    public string Name { get; private set; } = null!;
+    public string Code { get; private set; } = null!;
 
-    public NormalBalance NormalBalance {  get; private set; }
+    public string NameAr { get; private set; } = null!;
 
-    private AccountType()
-    {
+    public string NameEn { get; private set; } = null!;
 
-    }
+    public NormalBalance NormalBalance { get; private set; }
+
+    public FinancialStatement FinancialStatement { get; private set; }
+
+    private AccountType() { }
 }
