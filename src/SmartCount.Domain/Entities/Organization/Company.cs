@@ -18,6 +18,8 @@ public class Company : AuditableEntity
 
     public bool IsActive { get; private set; }
 
+    public bool IsActive { get; private set; }
+
     private Company()
     {
     }
