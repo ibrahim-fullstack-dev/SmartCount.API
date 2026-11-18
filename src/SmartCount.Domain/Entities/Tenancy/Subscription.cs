@@ -1,33 +1,35 @@
 ﻿
-using SmartCount.Domain.Entities.Common;
+using SmartCount.Domain.Entities.System;
 using SmartCount.Domain.Enums;
 
 namespace SmartCount.Domain.Entities.Tenancy;
 
-public class Subscription : AuditableEntity
+public class Subscription
 {
+    public int Id { get; private set; }
+
+    // Relationships
     public int TenantId { get; private set; }
-
     public int PlanId { get; private set; }
-
     public int CurrencyId { get; private set; }
 
+    public Tenant Tenant { get; private set; } = null!;
+    public Plan Plan { get; private set; } = null!;
+    public Currency Currency { get; private set; } = null!;
+
+    // Subscription Details
     public SubscriptionStatus Status { get; private set; }
-
     public decimal Price { get; private set; }
-
     public BillingCycle BillingCycle { get; private set; }
 
+    // Subscription Dates
     public DateTime StartDate { get; private set; }
-
     public DateTime CurrentPeriodStart { get; private set; }
-
     public DateTime CurrentPeriodEnd { get; private set; }
-
     public DateTime? TrialEndsOn { get; private set; }
 
+    // Cancellation
     public bool CancelAtPeriodEnd { get; private set; }
-
     public DateTime? CancelledOn { get; private set; }
 
     private Subscription()
@@ -41,6 +43,7 @@ public class Subscription : AuditableEntity
         CurrencyId = currencyId;
         Price = price;
         BillingCycle = billingCycle;
+
         StartDate = startDate;
         CurrentPeriodStart = currentPeriodStart;
         CurrentPeriodEnd = currentPeriodEnd;
@@ -55,7 +58,8 @@ public class Subscription : AuditableEntity
 
     public static Subscription Create(int tenantId,int planId,int currencyId,decimal price,BillingCycle billingCycle,DateTime startDate,DateTime currentPeriodStart,DateTime currentPeriodEnd,DateTime? trialEndsOn = null)
     {
-        Validate(tenantId,planId,currencyId,price,billingCycle,startDate,currentPeriodStart,currentPeriodEnd,trialEndsOn);       
+        Validate(tenantId,planId,currencyId,price,billingCycle,startDate,currentPeriodStart,currentPeriodEnd,trialEndsOn);
+
         return new Subscription(tenantId,planId,currencyId,price,billingCycle,startDate,currentPeriodStart,currentPeriodEnd,trialEndsOn);
     }
 
@@ -93,9 +97,11 @@ public class Subscription : AuditableEntity
         }
 
         if (cancelledOn == default)
+        {
             throw new ArgumentException(
                 "Cancellation date is required.",
                 nameof(cancelledOn));
+        }
 
         Status = SubscriptionStatus.Cancelled;
         CancelledOn = cancelledOn;
@@ -126,7 +132,7 @@ public class Subscription : AuditableEntity
         Status = SubscriptionStatus.Active;
     }
 
-    public void RenewPeriod(DateTime periodStart,DateTime periodEnd)
+    public void RenewPeriod(DateTime periodStart, DateTime periodEnd)
     {
         if (Status is SubscriptionStatus.Cancelled
             or SubscriptionStatus.Expired)
@@ -135,14 +141,14 @@ public class Subscription : AuditableEntity
                 "Terminated subscriptions cannot be renewed.");
         }
 
-        if (periodStart.Date != CurrentPeriodEnd.Date)
+        if (periodStart != CurrentPeriodEnd)
         {
             throw new ArgumentException(
                 "New period must start at the end of the current period.",
                 nameof(periodStart));
         }
 
-        if (periodEnd.Date <= periodStart.Date)
+        if (periodEnd <= periodStart)
         {
             throw new ArgumentException(
                 "Period end must be after period start.",
@@ -191,15 +197,19 @@ public class Subscription : AuditableEntity
             throw new ArgumentOutOfRangeException(nameof(billingCycle));
 
         if (startDate == default)
-            throw new ArgumentException("Start date is required.");
+            throw new ArgumentException(
+                "Start date is required.",
+                nameof(startDate));
 
         if (currentPeriodStart < startDate)
             throw new ArgumentException(
-                "Current period cannot start before subscription start.");
+                "Current period cannot start before subscription start.",
+                nameof(currentPeriodStart));
 
         if (currentPeriodEnd <= currentPeriodStart)
             throw new ArgumentException(
-                "Current period end must be after its start.");
+                "Current period end must be after its start.",
+                nameof(currentPeriodEnd));
 
         if (trialEndsOn.HasValue &&
             trialEndsOn.Value <= startDate)
