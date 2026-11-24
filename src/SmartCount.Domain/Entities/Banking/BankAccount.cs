@@ -1,50 +1,87 @@
-﻿using SmartCount.Domain.Entities.Common;
+﻿
+using SmartCount.Domain.Entities.Common;
+using SmartCount.Domain.Entities.Organization;
+using SmartCount.Domain.Entities.System;
 
-namespace SmartCount.Domain.Entities.Banking;
+namespace SmartCount.Domain.Entities.Accounting;
 
 public class BankAccount : AuditableEntity
 {
-    public int CompanyId { get; private set; }
-
     public int AccountId { get; private set; }
-
-    public string AccountNumber { get; private set; } = null!;
-
-    public string BankName { get; private set; } = null!;
-
+    public int CompanyId { get; private set; }
     public int CurrencyId { get; private set; }
 
-    public string? RoutingNumber { get; private set; }
+    public string AccountNumber { get; private set; } = null!;
+    public string BankName { get; private set; } = null!;
+    public string RoutingNumber { get; private set; } = null!;
+
+    // Navigation Properties
+    public Account Account { get; private set; } = null!;
+    public Company Company { get; private set; } = null!;
+    public Currency Currency { get; private set; } = null!;
 
     private BankAccount() { }
 
-    private BankAccount(int companyId,int accountId,string accountNumber,string bankName,int currencyId,string? routingNumber)
+    private BankAccount(int accountId,int companyId,int currencyId,string accountNumber,string bankName,string routingNumber)
     {
-        CompanyId = companyId;
         AccountId = accountId;
+        CompanyId = companyId;
+        CurrencyId = currencyId;
         AccountNumber = accountNumber.Trim();
         BankName = bankName.Trim();
+        RoutingNumber = routingNumber.Trim();
+    }
+
+
+    public static BankAccount Create(int accountId,int companyId,int currencyId,string accountNumber,string bankName,string routingNumber)
+    {
+        if (accountId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(accountId));
+
+        if (companyId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(companyId));
+
+        ValidateDetails(currencyId, accountNumber, bankName, routingNumber);
+
+        return new BankAccount(
+            accountId,
+            companyId,
+            currencyId,
+            accountNumber,
+            bankName,
+            routingNumber);
+    }
+
+    public void Update(int currencyId,string accountNumber,string bankName,string routingNumber)
+    {
+        ValidateDetails(currencyId, accountNumber, bankName, routingNumber);
+
         CurrencyId = currencyId;
-        RoutingNumber = NormalizeRoutingNumber(routingNumber);
-    }
-
-    public static BankAccount Create(int companyId,int accountId,string accountNumber,string bankName,int currencyId,string? routingNumber = null)
-    {
-        return new BankAccount(companyId,accountId,accountNumber,bankName,currencyId,routingNumber);
-    }
-
-    public void UpdateDetails(string accountNumber,string bankName,int currencyId,string? routingNumber)
-    {
         AccountNumber = accountNumber.Trim();
         BankName = bankName.Trim();
-        CurrencyId = currencyId;
-        RoutingNumber = NormalizeRoutingNumber(routingNumber);
+        RoutingNumber = routingNumber.Trim();
     }
 
-    private static string? NormalizeRoutingNumber(string? routingNumber)
+    private static void ValidateDetails(int currencyId,string accountNumber,string bankName,string routingNumber)
     {
-        return string.IsNullOrWhiteSpace(routingNumber)
-            ? null
-            : routingNumber.Trim();
+        if (currencyId <= 0)
+            throw new ArgumentOutOfRangeException(nameof(currencyId));
+
+        ValidateText(accountNumber, nameof(accountNumber), 36);
+        ValidateText(bankName, nameof(bankName), 80);
+        ValidateText(routingNumber, nameof(routingNumber), 36);
     }
+
+    private static void ValidateText(string value,string propertyName,int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentException(
+                $"{propertyName} is required.", propertyName);
+
+        if (value.Trim().Length > maxLength)
+            throw new ArgumentException(
+                $"{propertyName} cannot exceed {maxLength} characters.",
+                propertyName);
+    }
+
 }
